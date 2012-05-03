@@ -22,7 +22,24 @@ class Category_Binding_With_Add{
 		
 		//category delte hook
 		add_action('delete_category', array(get_class(), 'delete_category'), 10, 2);
+		
+		//category term description filtering
+		add_filter('get_category', array(get_class(), 'get_category_description'), 10, 2);
 	}
+	
+	
+	/*
+	 * Edit the category description
+	 * */
+	 static function get_category_description($_term, $taxonomy){
+		$term = self::get_term_meta($_term->term_id);
+		if(empty($term)) return $_term;
+		
+		$_term->description = stripcslashes($term->content);
+		
+		return $_term;
+		
+	 }
 	
 	 
 	
