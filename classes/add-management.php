@@ -65,6 +65,8 @@ class Category_Binding_With_Add{
 				$wpdb->insert($table, array('name'=>$name, 'content'=>$content, 'position'=>$position, 'term_id'=>$term_id), array('%s', '%s', '%d', '%d'));
 			}
 			
+			wp_update_term($term_id, 'category', array('description'=>$content));
+			
 			return;
 	  }
 	  
