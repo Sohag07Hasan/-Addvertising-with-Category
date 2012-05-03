@@ -24,18 +24,41 @@ class Category_Binding_With_Add{
 		add_action('delete_category', array(get_class(), 'delete_category'), 10, 2);
 		
 		//category term description filtering
-		add_filter('get_category', array(get_class(), 'get_category_description'), 10, 2);
+		
+		add_filter('get_category', array(get_class(), 'filter_category_description'), 10, 2);
+		
+		
+		//add_action('category_edit_form_fields', array(get_class(), 'category_edit_form'), 100, 2);
 	}
+	
+	/*
+	 * Extends the category form
+	 * */
+	static function category_edit_form($tag, $taxonomy){		
+		$term_meta = self::get_term_meta($tag->term_id);
+		$global_term = self::get_global_term();		
+		
+		//including the form
+		include dirname(__FILE__) . '/includes/form.php';
+	}
+	 
+	
 	
 	
 	/*
 	 * Edit the category description
 	 * */
-	 static function get_category_description($_term, $taxonomy){
-		$term = self::get_term_meta($_term->term_id);
+	 static function filter_category_description($_term, $taxonomy){
+				
+		$gc = self::get_global_term();
+		$t = ($gc > 0) ? $gc : $_term->term_id;
+		
+		$term = self::get_term_meta($t);
 		if(empty($term)) return $_term;
 		
-		$_term->description = stripcslashes($term->content);
+		$sanitized_description = self::sanitized_term_description($_term->description, $t);		
+		$_term->description = $sanitized_description;		
+		
 		
 		return $_term;
 		
@@ -194,12 +217,41 @@ class Category_Binding_With_Add{
 	  * */
 	  static function sanitized_content($content, $category=null){
 			if(empty($category)) return $content;
-			
-		//var_dump($category);	
-			global $wpdb;
-			$table = self::get_table_name();
-			$options = $wpdb->get_row("SELECT * FROM `$table` WHERE `term_id` = '$category'");
+					
+			$options = self::get_term_meta($category);
 						
+			
+			if(strlen($options->content) < 5) return $content;
+			
+			if($options->position == 1){
+				return stripslashes($options->content) . $content;
+			}
+			if($options->position == 2){
+				return $content . stripslashes($options->content);
+			}
+			if($options->position == 3){
+				preg_match('%(<p[^>]*>.*?</p>)%i', $content, $matches);
+				if(empty($matches)) return $content;
+				
+				$first_portion = $matches[0];
+				$last_portion = preg_replace('%(<p[^>]*>.*?</p>)%i', stripslashes($options->content), $content, 1);
+				
+				return $first_portion . $last_portion;
+			}
+			
+			return $content;			 
+			 
+	  }
+	  
+	  
+	   /*
+	  *sanitize the term description
+	  * */
+	  static function sanitized_term_description($content, $category=null){			
+					
+			$options = self::get_term_meta($category);			
+			$content = str_replace(stripcslashes($options->content), '', $content);
+			$content = str_replace(strip_tags(stripcslashes($options->content)), '', $content);					
 			
 			if(strlen($options->content) < 5) return $content;
 			
