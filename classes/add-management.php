@@ -57,7 +57,7 @@ class Category_Binding_With_Add{
 		if(empty($term)) return $_term;
 		
 		$sanitized_description = self::sanitized_term_description($_term->description, $t);		
-		$_term->description = $sanitized_description;		
+		$_term->description =  $sanitized_description;		
 		
 		
 		return $_term;
@@ -105,7 +105,7 @@ class Category_Binding_With_Add{
 				$wpdb->insert($table, array('name'=>$name, 'content'=>$content, 'position'=>$position, 'term_id'=>$term_id), array('%s', '%s', '%d', '%d'));
 			}
 			
-			wp_update_term($term_id, 'category', array('description'=>$content));
+			//wp_update_term($term_id, 'category', array('description'=>$content));
 			
 			return;
 	  }
@@ -256,17 +256,17 @@ class Category_Binding_With_Add{
 			if(strlen($options->content) < 5) return $content;
 			
 			if($options->position == 1){
-				return stripslashes($options->content) . $content;
+				return stripslashes($options->content) . '<br/>' . $content;
 			}
 			if($options->position == 2){
-				return $content . stripslashes($options->content);
+				return $content . '<br/>' . stripslashes($options->content);
 			}
 			if($options->position == 3){
 				preg_match('%(<p[^>]*>.*?</p>)%i', $content, $matches);
 				if(empty($matches)) return $content;
 				
-				$first_portion = $matches[0];
-				$last_portion = preg_replace('%(<p[^>]*>.*?</p>)%i', stripslashes($options->content), $content, 1);
+				$first_portion = $matches[0] . '<br/>';
+				$last_portion = preg_replace('%(<p[^>]*>.*?</p>)%i', stripslashes($options->content).'<br/>', $content, 1);
 				
 				return $first_portion . $last_portion;
 			}
